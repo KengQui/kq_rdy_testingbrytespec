@@ -1,0 +1,3 @@
+// Copy this file to bryte.config.js and paste your Gemini API key below.
+// bryte.config.js is gitignored — your key will never be committed.
+window.BRYTE_API_KEY = 'paste-your-key-here';
