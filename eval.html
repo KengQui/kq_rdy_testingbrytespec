@@ -1,0 +1,1530 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Bryte AI — Eval Testing</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: #f5f5f5;
+      display: flex;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    .sidebar {
+      width: 340px;
+      min-width: 340px;
+      background: #fff;
+      border-right: 1px solid rgba(0,0,0,0.08);
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    .sidebar-header {
+      padding: 16px 16px 12px;
+      border-bottom: 1px solid rgba(0,0,0,0.06);
+      flex-shrink: 0;
+    }
+
+    .sidebar-header-top {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+
+    .sidebar-header h1 {
+      font-size: 16px;
+      font-weight: 700;
+      color: rgba(0,0,0,0.87);
+    }
+
+    .sidebar-header .back-link {
+      margin-left: auto;
+      font-size: 11px;
+      color: #30258D;
+      text-decoration: none;
+      font-weight: 600;
+    }
+    .sidebar-header .back-link:hover { text-decoration: underline; }
+
+    .new-session-btn {
+      width: 100%;
+      padding: 9px 14px;
+      background: #30258D;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      font-family: inherit;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      justify-content: center;
+      transition: background 0.15s;
+      margin-bottom: 10px;
+    }
+    .new-session-btn:hover { background: #3E30B7; }
+
+    .search-box {
+      width: 100%;
+      padding: 8px 12px;
+      border: 1.5px solid rgba(48,37,141,0.18);
+      border-radius: 8px;
+      font-size: 12.5px;
+      outline: none;
+      font-family: inherit;
+      color: rgba(0,0,0,0.87);
+    }
+    .search-box:focus { border-color: #30258D; }
+    .search-box::placeholder { color: rgba(0,0,0,0.32); }
+
+    .sidebar-stats {
+      display: flex;
+      gap: 8px;
+      padding: 8px 16px;
+      border-bottom: 1px solid rgba(0,0,0,0.06);
+      flex-shrink: 0;
+    }
+
+    .stat-pill {
+      font-size: 11px;
+      font-weight: 600;
+      padding: 3px 9px;
+      border-radius: 100px;
+      cursor: pointer;
+      transition: all 0.12s;
+    }
+    .stat-pill.all { background: rgba(0,0,0,0.06); color: rgba(0,0,0,0.6); }
+    .stat-pill.pass { background: rgba(34,197,94,0.1); color: #15803d; }
+    .stat-pill.fail { background: rgba(239,68,68,0.08); color: #b91c1c; }
+    .stat-pill.untested { background: rgba(234,179,8,0.1); color: #854d0e; }
+    .stat-pill.active { outline: 2px solid #30258D; outline-offset: 1px; }
+
+    .sidebar-list {
+      flex: 1;
+      overflow-y: auto;
+      padding: 4px 0;
+    }
+    .sidebar-list::-webkit-scrollbar { width: 4px; }
+    .sidebar-list::-webkit-scrollbar-thumb { background: rgba(48,37,141,0.12); border-radius: 2px; }
+
+    .scorecard-group {
+      margin-bottom: 2px;
+    }
+
+    .scorecard-header {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 16px;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: rgba(0,0,0,0.45);
+      cursor: pointer;
+      user-select: none;
+      transition: background 0.12s;
+    }
+    .scorecard-header:hover { background: rgba(0,0,0,0.02); }
+    .scorecard-header .chevron {
+      font-style: normal;
+      font-size: 10px;
+      transition: transform 0.2s;
+    }
+    .scorecard-header.collapsed .chevron { transform: rotate(-90deg); }
+    .scorecard-header .count {
+      margin-left: auto;
+      font-size: 10px;
+      font-weight: 600;
+      color: rgba(0,0,0,0.3);
+    }
+
+    .scorecard-items {
+      display: block;
+    }
+    .scorecard-items.collapsed { display: none; }
+
+    .use-case-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      padding: 8px 16px 8px 24px;
+      cursor: pointer;
+      transition: background 0.1s;
+      border-left: 3px solid transparent;
+    }
+    .use-case-item:hover { background: rgba(48,37,141,0.03); }
+    .use-case-item.selected {
+      background: rgba(48,37,141,0.06);
+      border-left-color: #30258D;
+    }
+
+    .uc-status {
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      flex-shrink: 0;
+      margin-top: 2px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 9px;
+      font-weight: 700;
+    }
+    .uc-status.untested { background: rgba(0,0,0,0.06); color: rgba(0,0,0,0.3); }
+    .uc-status.pass { background: rgba(34,197,94,0.15); color: #15803d; }
+    .uc-status.fail { background: rgba(239,68,68,0.12); color: #b91c1c; }
+
+    .uc-info {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .uc-title-row {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .uc-id {
+      font-size: 10.5px;
+      font-weight: 700;
+      color: #30258D;
+      flex-shrink: 0;
+    }
+
+    .uc-title {
+      font-size: 12.5px;
+      font-weight: 600;
+      color: rgba(0,0,0,0.8);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .uc-preview {
+      font-size: 11px;
+      color: rgba(0,0,0,0.4);
+      margin-top: 2px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .uc-status-tag {
+      font-size: 9px;
+      font-weight: 600;
+      padding: 1px 5px;
+      border-radius: 3px;
+      flex-shrink: 0;
+    }
+    .uc-status-tag.needs-investigation { background: rgba(234,179,8,0.12); color: #854d0e; }
+    .uc-status-tag.pending { background: rgba(0,0,0,0.06); color: rgba(0,0,0,0.45); }
+
+    .main-content {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .empty-state {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      color: rgba(0,0,0,0.3);
+      gap: 12px;
+    }
+    .empty-state svg { opacity: 0.3; }
+    .empty-state p { font-size: 14px; font-weight: 500; }
+
+    .test-page {
+      flex: 1;
+      display: none;
+      flex-direction: column;
+      overflow: hidden;
+    }
+    .test-page.active { display: flex; }
+
+    .test-header {
+      padding: 16px 24px;
+      border-bottom: 1px solid rgba(0,0,0,0.06);
+      background: #fff;
+      flex-shrink: 0;
+    }
+
+    .test-header-top {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 6px;
+    }
+
+    .test-header .test-id {
+      font-size: 12px;
+      font-weight: 700;
+      color: #30258D;
+    }
+
+    .test-header .test-title {
+      font-size: 18px;
+      font-weight: 700;
+      color: rgba(0,0,0,0.87);
+    }
+
+    .test-header .test-scorecard {
+      font-size: 11px;
+      font-weight: 600;
+      color: rgba(0,0,0,0.4);
+      margin-left: auto;
+    }
+
+    .test-meta {
+      display: flex;
+      gap: 8px;
+      margin-top: 6px;
+      flex-wrap: wrap;
+    }
+
+    .meta-tag {
+      font-size: 10.5px;
+      font-weight: 600;
+      padding: 2px 8px;
+      border-radius: 100px;
+      border: 1px solid;
+    }
+    .meta-tag.type { background: rgba(48,37,141,0.06); border-color: rgba(48,37,141,0.18); color: #30258D; }
+    .meta-tag.status-active { background: rgba(34,197,94,0.08); border-color: rgba(34,197,94,0.25); color: #15803d; }
+    .meta-tag.status-needs-investigation { background: rgba(234,179,8,0.1); border-color: rgba(234,179,8,0.3); color: #854d0e; }
+    .meta-tag.status-pending { background: rgba(0,0,0,0.04); border-color: rgba(0,0,0,0.1); color: rgba(0,0,0,0.45); }
+    .meta-tag.rule { background: rgba(239,68,68,0.06); border-color: rgba(239,68,68,0.2); color: #b91c1c; }
+
+    .test-body {
+      flex: 1;
+      display: flex;
+      overflow: hidden;
+    }
+
+    .test-details {
+      width: 360px;
+      min-width: 360px;
+      border-right: 1px solid rgba(0,0,0,0.06);
+      overflow-y: auto;
+      padding: 16px 20px;
+      background: #fafafa;
+    }
+    .test-details::-webkit-scrollbar { width: 4px; }
+    .test-details::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.1); border-radius: 2px; }
+
+    .detail-section {
+      margin-bottom: 16px;
+    }
+
+    .detail-section h3 {
+      font-size: 10.5px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: rgba(0,0,0,0.4);
+      margin-bottom: 6px;
+    }
+
+    .detail-section .prompt-text {
+      background: rgba(48,37,141,0.06);
+      border: 1px solid rgba(48,37,141,0.12);
+      border-radius: 8px;
+      padding: 10px 12px;
+      font-size: 13px;
+      line-height: 1.5;
+      color: rgba(0,0,0,0.8);
+      cursor: pointer;
+      transition: border-color 0.12s;
+    }
+    .detail-section .prompt-text:hover { border-color: rgba(48,37,141,0.3); }
+    .detail-section .prompt-text::after {
+      content: 'Click to send';
+      display: block;
+      font-size: 10px;
+      color: #30258D;
+      font-weight: 600;
+      margin-top: 6px;
+    }
+
+    .detail-section p,
+    .detail-section li {
+      font-size: 12.5px;
+      line-height: 1.55;
+      color: rgba(0,0,0,0.65);
+    }
+
+    .detail-section ul {
+      padding-left: 16px;
+    }
+    .detail-section li { margin-bottom: 3px; }
+
+    .detail-section .notes-box {
+      background: rgba(234,179,8,0.08);
+      border: 1px solid rgba(234,179,8,0.2);
+      border-radius: 6px;
+      padding: 8px 10px;
+      font-size: 12px;
+      color: #854d0e;
+      line-height: 1.5;
+    }
+
+    .test-chat-area {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .chat-panel-eval {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      background: linear-gradient(135deg, rgba(109,170,242,0.03) 0%, rgba(95,36,159,0.03) 75%), #fff;
+    }
+
+    .chat-header-eval {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 12px 16px;
+      border-bottom: 1px solid rgba(0,0,0,0.06);
+      flex-shrink: 0;
+      background: #fff;
+    }
+    .chat-header-eval h2 { font-size: 14px; font-weight: 600; color: rgba(0,0,0,0.87); }
+    .chat-header-eval p { font-size: 11px; color: rgba(0,0,0,0.4); margin-top: 1px; }
+
+    .verdict-buttons {
+      margin-left: auto;
+      display: flex;
+      gap: 6px;
+    }
+
+    .verdict-btn {
+      padding: 5px 14px;
+      border-radius: 100px;
+      font-size: 11.5px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.12s;
+      font-family: inherit;
+    }
+
+    .verdict-btn.pass-btn {
+      background: rgba(34,197,94,0.08);
+      border: 1.5px solid rgba(34,197,94,0.3);
+      color: #15803d;
+    }
+    .verdict-btn.pass-btn:hover { background: rgba(34,197,94,0.15); }
+    .verdict-btn.pass-btn.active { background: #15803d; color: white; border-color: #15803d; }
+
+    .verdict-btn.fail-btn {
+      background: rgba(239,68,68,0.06);
+      border: 1.5px solid rgba(239,68,68,0.25);
+      color: #b91c1c;
+    }
+    .verdict-btn.fail-btn:hover { background: rgba(239,68,68,0.12); }
+    .verdict-btn.fail-btn.active { background: #b91c1c; color: white; border-color: #b91c1c; }
+
+    .messages-eval {
+      flex: 1;
+      overflow-y: auto;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+    .messages-eval::-webkit-scrollbar { width: 4px; }
+    .messages-eval::-webkit-scrollbar-thumb { background: rgba(48,37,141,0.12); border-radius: 2px; }
+
+    .msg { display: flex; align-items: flex-start; gap: 8px; }
+    .msg.user { flex-direction: row-reverse; }
+
+    .bryte-avatar { width: 26px; height: 26px; flex-shrink: 0; margin-top: 2px; }
+
+    .user-avatar {
+      width: 26px; height: 26px;
+      border-radius: 50%;
+      background: rgba(48,37,141,0.1);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 10px; font-weight: 700; color: #222;
+      flex-shrink: 0; margin-top: 2px;
+    }
+
+    .bubble {
+      max-width: 82%;
+      padding: 9px 13px;
+      border-radius: 14px;
+      font-size: 13.5px;
+      line-height: 1.55;
+      color: rgba(0,0,0,0.87);
+    }
+    .msg.bryte .bubble {
+      background: white;
+      border: 1px solid rgba(0,0,0,0.08);
+      border-top-left-radius: 3px;
+    }
+    .msg.user .bubble {
+      background: rgba(48,37,141,0.08);
+      color: white;
+      background: linear-gradient(135deg, #6DAAF2 0%, #5F249F 75%);
+      border-top-right-radius: 3px;
+    }
+
+    .typing-bubble {
+      display: flex; align-items: center; gap: 4px;
+      padding: 13px 16px;
+    }
+    .dot {
+      width: 5px; height: 5px; border-radius: 50%;
+      background: rgba(48,37,141,0.3);
+      animation: bounce 1.1s infinite;
+    }
+    .dot:nth-child(2) { animation-delay: 0.18s; }
+    .dot:nth-child(3) { animation-delay: 0.36s; }
+    @keyframes bounce {
+      0%, 60%, 100% { transform: translateY(0); }
+      30% { transform: translateY(-5px); }
+    }
+
+    .input-area-eval {
+      padding: 8px 12px;
+      border-top: 1px solid rgba(0,0,0,0.06);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-shrink: 0;
+      background: #fff;
+    }
+
+    .chat-input-eval {
+      flex: 1;
+      padding: 9px 15px;
+      border-radius: 100px;
+      font-size: 13.5px;
+      outline: none;
+      color: rgba(0,0,0,0.87);
+      border: 1.5px solid transparent;
+      background-image: linear-gradient(white, white),
+        linear-gradient(135deg, rgba(239,149,14,0.4) 15%, rgba(238,39,114,0.4) 50%, rgba(79,65,187,0.4) 85%);
+      background-origin: border-box;
+      background-clip: padding-box, border-box;
+      font-family: inherit;
+    }
+    .chat-input-eval::placeholder { color: rgba(0,0,0,0.32); }
+
+    .send-btn-eval {
+      width: 34px; height: 34px;
+      border-radius: 50%;
+      border: none;
+      background: linear-gradient(135deg, #6DAAF2 0%, #5F249F 75%);
+      color: white;
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+      transition: opacity 0.15s;
+    }
+    .send-btn-eval:hover { opacity: 0.88; }
+    .send-btn-eval:disabled { opacity: 0.35; cursor: default; }
+
+    .routing-tag-eval {
+      font-size: 10.5px;
+      color: #222;
+      background: rgba(48,37,141,0.07);
+      border: 1px solid rgba(48,37,141,0.15);
+      border-radius: 100px;
+      padding: 3px 10px;
+      width: fit-content;
+      margin: 0 auto;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+    }
+
+    .bryte-form {
+      background: rgba(48,37,141,0.03);
+      border: 1px solid rgba(48,37,141,0.18);
+      border-radius: 12px;
+      padding: 16px;
+      margin: 4px 0;
+    }
+    .bryte-form-title {
+      font-size: 13px;
+      font-weight: 700;
+      color: rgba(0,0,0,0.87);
+      margin-bottom: 12px;
+    }
+    .bryte-form-field { margin-bottom: 10px; }
+    .bryte-form label {
+      display: block;
+      font-size: 11.5px;
+      font-weight: 600;
+      color: rgba(0,0,0,0.55);
+      margin-bottom: 4px;
+    }
+    .bryte-form input[type="text"],
+    .bryte-form input[type="number"],
+    .bryte-form select {
+      width: 100%;
+      padding: 8px 11px;
+      border: 1.5px solid rgba(48,37,141,0.22);
+      border-radius: 8px;
+      font-size: 13px;
+      font-family: inherit;
+      color: rgba(0,0,0,0.87);
+      background: white;
+      outline: none;
+    }
+    .bryte-form input:focus,
+    .bryte-form select:focus { border-color: #30258D; }
+    .bryte-form-submit {
+      margin-top: 14px;
+      width: 100%;
+      padding: 10px;
+      background: #30258D;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      font-family: inherit;
+      cursor: pointer;
+    }
+    .bryte-form-submit:hover { background: #3E30B7; }
+
+    .alt-prompts {
+      margin-top: 6px;
+    }
+    .alt-prompt {
+      background: rgba(48,37,141,0.04);
+      border: 1px solid rgba(48,37,141,0.08);
+      border-radius: 6px;
+      padding: 6px 10px;
+      font-size: 12px;
+      color: rgba(0,0,0,0.6);
+      cursor: pointer;
+      margin-top: 4px;
+      transition: border-color 0.12s;
+    }
+    .alt-prompt:hover { border-color: rgba(48,37,141,0.25); }
+  </style>
+</head>
+<body>
+
+  <div class="sidebar">
+    <div class="sidebar-header">
+      <div class="sidebar-header-top">
+        <svg width="28" height="28" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path fill-rule="evenodd" clip-rule="evenodd" d="M27.6928 6.86067C27.4119 7.75951 27.1785 9.53921 27.8269 11.1042L27.8269 11.1041C28.4622 12.6376 29.8419 13.7183 30.6821 14.1724C30.7254 14.1868 30.7685 14.2029 30.8114 14.2207C31.5741 14.5365 32.0257 15.2861 31.9989 16.0651C31.9743 16.7964 31.5315 17.4812 30.8113 17.7795C30.7685 17.7972 30.7253 17.8133 30.682 17.8278C29.8418 18.2818 28.4621 19.3625 27.8268 20.896C27.1785 22.4609 27.4118 24.2405 27.6927 25.1393C27.9099 25.6098 27.9375 26.1661 27.7235 26.6826C27.6434 26.876 27.5354 27.0493 27.4061 27.2C27.2155 27.4225 26.9709 27.6047 26.6816 27.7246C26.164 27.9389 25.6064 27.9108 25.1352 27.6924C24.2353 27.412 22.4576 27.1799 20.8941 27.8273C19.3669 28.4599 18.2886 29.8305 17.8312 30.6715C17.6628 31.1873 17.2784 31.6292 16.7377 31.8531C16.4902 31.9556 16.2336 32.0026 15.9816 32C15.7415 31.9979 15.4977 31.9506 15.2623 31.853C14.7217 31.6292 14.3373 31.1874 14.1689 30.6717C13.7115 29.8307 12.6332 28.4599 11.1059 27.8274C9.54256 27.1799 7.76499 27.412 6.86503 27.6923C6.3938 27.9108 5.83611 27.939 5.3184 27.7246C5.02629 27.6036 4.77981 27.4191 4.58837 27.1936C4.46152 27.0444 4.35545 26.8732 4.27649 26.6826C4.0625 26.1661 4.09015 25.6098 4.3074 25.1392C4.58821 24.2403 4.82146 22.4608 4.1732 20.896C3.53792 19.3626 2.1582 18.2819 1.31802 17.8278C1.27468 17.8134 1.23155 17.7973 1.18869 17.7795C0.468362 17.4812 0.0254892 16.7961 0.00111517 16.0646C-0.0255076 15.2857 0.426109 14.5365 1.18864 14.2207C1.23149 14.2029 1.27463 14.1868 1.31796 14.1724C2.15814 13.7183 3.53786 12.6376 4.17314 11.1041C4.82141 9.53938 4.58816 7.75988 4.30734 6.86095C4.09009 6.39043 4.06244 5.8341 4.27644 5.31756C4.35591 5.12572 4.46284 4.95356 4.59078 4.80375C4.78187 4.57957 5.02749 4.39604 5.31834 4.27559C5.83606 4.06118 6.39374 4.08939 6.86497 4.30787C7.76493 4.58823 9.54251 4.82026 11.1058 4.17286C12.6334 3.54018 13.7118 2.16918 14.169 1.32821C14.3375 0.812581 14.7218 0.370903 15.2623 0.147044C15.5152 0.0423256 15.7776 -0.00451819 16.0347 0.000150523C16.2749 0.00454791 16.5116 0.0538498 16.7377 0.14703C17.2784 0.370833 17.6628 0.812615 17.8312 1.32835C18.2886 2.16932 19.3669 3.54018 20.8941 4.17282C22.4576 4.82026 24.2352 4.58823 25.1352 4.30787C25.6064 4.08939 26.164 4.06118 26.6816 4.27559C26.9709 4.39604 27.2155 4.57957 27.4061 4.80375C27.5354 4.95356 27.6434 5.12572 27.7235 5.31756C27.9375 5.8341 27.9099 6.39043 27.6928 6.86067Z" fill="url(#eval_logo)"/>
+          <path fill-rule="evenodd" clip-rule="evenodd" d="M10.9707 16.5885C11.5954 16.1368 12.468 16.2771 12.9196 16.9018C13.6019 17.8455 14.7237 18.4641 15.9992 18.4641C17.2747 18.4641 18.3965 17.8455 19.0787 16.9018C19.5304 16.2771 20.403 16.1368 21.0277 16.5885C21.6524 17.0402 21.7927 17.9127 21.341 18.5374C20.1501 20.1846 18.1981 21.2557 15.9992 21.2557C13.8003 21.2557 11.8482 20.1846 10.6573 18.5374C10.2057 17.9127 10.346 17.0402 10.9707 16.5885Z" fill="#743DB0"/>
+          <defs>
+            <linearGradient id="eval_logo" x1="9.92" y1="1.12" x2="21.8" y2="29.998" gradientUnits="userSpaceOnUse">
+              <stop stop-color="#6DAAF2"/><stop offset="0.75" stop-color="#5F249F"/>
+            </linearGradient>
+          </defs>
+        </svg>
+        <h1>Eval Testing</h1>
+        <a href="/" class="back-link">Back to Demo</a>
+      </div>
+      <button class="new-session-btn" onclick="resetCurrentSession()">Reset Chat</button>
+      <input type="text" class="search-box" id="searchBox" placeholder="Search use cases..." oninput="filterUseCases()">
+    </div>
+
+    <div class="sidebar-stats" id="sidebarStats"></div>
+
+    <div class="sidebar-list" id="sidebarList"></div>
+  </div>
+
+  <div class="main-content">
+    <div class="empty-state" id="emptyState">
+      <svg width="48" height="48" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path fill-rule="evenodd" clip-rule="evenodd" d="M27.6928 6.86067C27.4119 7.75951 27.1785 9.53921 27.8269 11.1042L27.8269 11.1041C28.4622 12.6376 29.8419 13.7183 30.6821 14.1724C30.7254 14.1868 30.7685 14.2029 30.8114 14.2207C31.5741 14.5365 32.0257 15.2861 31.9989 16.0651C31.9743 16.7964 31.5315 17.4812 30.8113 17.7795C30.7685 17.7972 30.7253 17.8133 30.682 17.8278C29.8418 18.2818 28.4621 19.3625 27.8268 20.896C27.1785 22.4609 27.4118 24.2405 27.6927 25.1393C27.9099 25.6098 27.9375 26.1661 27.7235 26.6826C27.6434 26.876 27.5354 27.0493 27.4061 27.2C27.2155 27.4225 26.9709 27.6047 26.6816 27.7246C26.164 27.9389 25.6064 27.9108 25.1352 27.6924C24.2353 27.412 22.4576 27.1799 20.8941 27.8273C19.3669 28.4599 18.2886 29.8305 17.8312 30.6715C17.6628 31.1873 17.2784 31.6292 16.7377 31.8531C16.4902 31.9556 16.2336 32.0026 15.9816 32C15.7415 31.9979 15.4977 31.9506 15.2623 31.853C14.7217 31.6292 14.3373 31.1874 14.1689 30.6717C13.7115 29.8307 12.6332 28.4599 11.1059 27.8274C9.54256 27.1799 7.76499 27.412 6.86503 27.6923C6.3938 27.9108 5.83611 27.939 5.3184 27.7246C5.02629 27.6036 4.77981 27.4191 4.58837 27.1936C4.46152 27.0444 4.35545 26.8732 4.27649 26.6826C4.0625 26.1661 4.09015 25.6098 4.3074 25.1392C4.58821 24.2403 4.82146 22.4608 4.1732 20.896C3.53792 19.3626 2.1582 18.2819 1.31802 17.8278C1.27468 17.8134 1.23155 17.7973 1.18869 17.7795C0.468362 17.4812 0.0254892 16.7961 0.00111517 16.0646C-0.0255076 15.2857 0.426109 14.5365 1.18864 14.2207C1.23149 14.2029 1.27463 14.1868 1.31796 14.1724C2.15814 13.7183 3.53786 12.6376 4.17314 11.1041C4.82141 9.53938 4.58816 7.75988 4.30734 6.86095C4.09009 6.39043 4.06244 5.8341 4.27644 5.31756C4.35591 5.12572 4.46284 4.95356 4.59078 4.80375C4.78187 4.57957 5.02749 4.39604 5.31834 4.27559C5.83606 4.06118 6.39374 4.08939 6.86497 4.30787C7.76493 4.58823 9.54251 4.82026 11.1058 4.17286C12.6334 3.54018 13.7118 2.16918 14.169 1.32821C14.3375 0.812581 14.7218 0.370903 15.2623 0.147044C15.5152 0.0423256 15.7776 -0.00451819 16.0347 0.000150523C16.2749 0.00454791 16.5116 0.0538498 16.7377 0.14703C17.2784 0.370833 17.6628 0.812615 17.8312 1.32835C18.2886 2.16932 19.3669 3.54018 20.8941 4.17282C22.4576 4.82026 24.2352 4.58823 25.1352 4.30787C25.6064 4.08939 26.164 4.06118 26.6816 4.27559C26.9709 4.39604 27.2155 4.57957 27.4061 4.80375C27.5354 4.95356 27.6434 5.12572 27.7235 5.31756C27.9375 5.8341 27.9099 6.39043 27.6928 6.86067Z" fill="url(#empty_grad)"/>
+        <path fill-rule="evenodd" clip-rule="evenodd" d="M10.9707 16.5885C11.5954 16.1368 12.468 16.2771 12.9196 16.9018C13.6019 17.8455 14.7237 18.4641 15.9992 18.4641C17.2747 18.4641 18.3965 17.8455 19.0787 16.9018C19.5304 16.2771 20.403 16.1368 21.0277 16.5885C21.6524 17.0402 21.7927 17.9127 21.341 18.5374C20.1501 20.1846 18.1981 21.2557 15.9992 21.2557C13.8003 21.2557 11.8482 20.1846 10.6573 18.5374C10.2057 17.9127 10.346 17.0402 10.9707 16.5885Z" fill="#743DB0"/>
+        <defs>
+          <linearGradient id="empty_grad" x1="9.92" y1="1.12" x2="21.8" y2="29.998" gradientUnits="userSpaceOnUse">
+            <stop stop-color="#6DAAF2"/><stop offset="0.75" stop-color="#5F249F"/>
+          </linearGradient>
+        </defs>
+      </svg>
+      <p>Select a use case from the sidebar to begin testing</p>
+    </div>
+
+    <div class="test-page" id="testPage">
+      <div class="test-header" id="testHeader"></div>
+      <div class="test-body">
+        <div class="test-details" id="testDetails"></div>
+        <div class="test-chat-area">
+          <div class="chat-panel-eval">
+            <div class="chat-header-eval">
+              <svg width="28" height="28" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path fill-rule="evenodd" clip-rule="evenodd" d="M27.6928 6.86067C27.4119 7.75951 27.1785 9.53921 27.8269 11.1042L27.8269 11.1041C28.4622 12.6376 29.8419 13.7183 30.6821 14.1724C30.7254 14.1868 30.7685 14.2029 30.8114 14.2207C31.5741 14.5365 32.0257 15.2861 31.9989 16.0651C31.9743 16.7964 31.5315 17.4812 30.8113 17.7795C30.7685 17.7972 30.7253 17.8133 30.682 17.8278C29.8418 18.2818 28.4621 19.3625 27.8268 20.896C27.1785 22.4609 27.4118 24.2405 27.6927 25.1393C27.9099 25.6098 27.9375 26.1661 27.7235 26.6826C27.6434 26.876 27.5354 27.0493 27.4061 27.2C27.2155 27.4225 26.9709 27.6047 26.6816 27.7246C26.164 27.9389 25.6064 27.9108 25.1352 27.6924C24.2353 27.412 22.4576 27.1799 20.8941 27.8273C19.3669 28.4599 18.2886 29.8305 17.8312 30.6715C17.6628 31.1873 17.2784 31.6292 16.7377 31.8531C16.4902 31.9556 16.2336 32.0026 15.9816 32C15.7415 31.9979 15.4977 31.9506 15.2623 31.853C14.7217 31.6292 14.3373 31.1874 14.1689 30.6717C13.7115 29.8307 12.6332 28.4599 11.1059 27.8274C9.54256 27.1799 7.76499 27.412 6.86503 27.6923C6.3938 27.9108 5.83611 27.939 5.3184 27.7246C5.02629 27.6036 4.77981 27.4191 4.58837 27.1936C4.46152 27.0444 4.35545 26.8732 4.27649 26.6826C4.0625 26.1661 4.09015 25.6098 4.3074 25.1392C4.58821 24.2403 4.82146 22.4608 4.1732 20.896C3.53792 19.3626 2.1582 18.2819 1.31802 17.8278C1.27468 17.8134 1.23155 17.7973 1.18869 17.7795C0.468362 17.4812 0.0254892 16.7961 0.00111517 16.0646C-0.0255076 15.2857 0.426109 14.5365 1.18864 14.2207C1.23149 14.2029 1.27463 14.1868 1.31796 14.1724C2.15814 13.7183 3.53786 12.6376 4.17314 11.1041C4.82141 9.53938 4.58816 7.75988 4.30734 6.86095C4.09009 6.39043 4.06244 5.8341 4.27644 5.31756C4.35591 5.12572 4.46284 4.95356 4.59078 4.80375C4.78187 4.57957 5.02749 4.39604 5.31834 4.27559C5.83606 4.06118 6.39374 4.08939 6.86497 4.30787C7.76493 4.58823 9.54251 4.82026 11.1058 4.17286C12.6334 3.54018 13.7118 2.16918 14.169 1.32821C14.3375 0.812581 14.7218 0.370903 15.2623 0.147044C15.5152 0.0423256 15.7776 -0.00451819 16.0347 0.000150523C16.2749 0.00454791 16.5116 0.0538498 16.7377 0.14703C17.2784 0.370833 17.6628 0.812615 17.8312 1.32835C18.2886 2.16932 19.3669 3.54018 20.8941 4.17282C22.4576 4.82026 24.2352 4.58823 25.1352 4.30787C25.6064 4.08939 26.164 4.06118 26.6816 4.27559C26.9709 4.39604 27.2155 4.57957 27.4061 4.80375C27.5354 4.95356 27.6434 5.12572 27.7235 5.31756C27.9375 5.8341 27.9099 6.39043 27.6928 6.86067Z" fill="url(#chat_grad)"/>
+                <path fill-rule="evenodd" clip-rule="evenodd" d="M10.9707 16.5885C11.5954 16.1368 12.468 16.2771 12.9196 16.9018C13.6019 17.8455 14.7237 18.4641 15.9992 18.4641C17.2747 18.4641 18.3965 17.8455 19.0787 16.9018C19.5304 16.2771 20.403 16.1368 21.0277 16.5885C21.6524 17.0402 21.7927 17.9127 21.341 18.5374C20.1501 20.1846 18.1981 21.2557 15.9992 21.2557C13.8003 21.2557 11.8482 20.1846 10.6573 18.5374C10.2057 17.9127 10.346 17.0402 10.9707 16.5885Z" fill="#743DB0"/>
+                <defs>
+                  <linearGradient id="chat_grad" x1="9.92" y1="1.12" x2="21.8" y2="29.998" gradientUnits="userSpaceOnUse">
+                    <stop stop-color="#6DAAF2"/><stop offset="0.75" stop-color="#5F249F"/>
+                  </linearGradient>
+                </defs>
+              </svg>
+              <div>
+                <h2>Bryte</h2>
+                <p>With behavioral spec</p>
+              </div>
+              <div class="verdict-buttons">
+                <button class="verdict-btn pass-btn" onclick="setVerdict('pass')">Pass</button>
+                <button class="verdict-btn fail-btn" onclick="setVerdict('fail')">Fail</button>
+              </div>
+            </div>
+            <div class="messages-eval" id="evalMessages"></div>
+            <div class="input-area-eval">
+              <input type="text" class="chat-input-eval" id="evalInput" placeholder="Type your message..." onkeydown="if(event.key==='Enter')sendEvalMessage()">
+              <button class="send-btn-eval" id="evalSend" onclick="sendEvalMessage()">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let useCasesData = null;
+    let selectedUC = null;
+    let chatHistory = [];
+    let verdicts = JSON.parse(localStorage.getItem('bryteEvalVerdicts') || '{}');
+    let activeFilter = 'all';
+
+    const includes = {};
+
+    async function loadIncludes() {
+      const files = {
+        orchestratorRules: 'config/agents/includes/OrchestratorRules.md',
+        agentBehavior:     'config/agents/includes/AgentBehavior.md',
+        writeActions:      'config/agents/includes/WriteActions.md',
+      };
+      await Promise.all(
+        Object.entries(files).map(async ([key, path]) => {
+          try {
+            const res = await fetch(path);
+            includes[key] = await res.text();
+          } catch(e) { includes[key] = ''; }
+        })
+      );
+    }
+
+    const MOCK_AGENTS = {
+      accruals: {
+        name: 'Accruals',
+        data: `AGENT: RdyAccrualsAgent — live data retrieved
+Accrual Balances for current employee:
+- Vacation: 12.50 hours available | 20.00 hours used YTD
+- Sick Leave: 8.00 hours available | 4.00 hours used YTD
+- PTO: 5.25 hours available | 0.00 hours used YTD
+Format balances using available_balance only. Use a markdown table.`
+      },
+      time_off_request: {
+        name: 'Time Off Request',
+        data: `AGENT: RdyTimeOffRequestAgent — tools available
+Available time off types (from TORTimeOffSelector):
+- Vacation (eligible, 12.50 hrs available)
+- Sick Leave (eligible, 8.00 hrs available)
+- PTO (eligible, 5.25 hrs available)
+- Personal Day (eligible, 1 day available)
+
+If user wants to create a request: confirm the dates, time off type, and whether full day. Then simulate submission and confirm pending manager approval.
+If user wants to cancel: ask for the dates of the request to cancel.
+Never show request IDs to the user — refer to requests by date instead.
+After confirming details, always simulate success: "Your time off request has been submitted and is pending manager approval."`
+      },
+      pay: {
+        name: 'Pay Info',
+        data: `AGENT: RdyMyPayInfo — live data retrieved
+Previous Pay Period: Feb 16–Mar 1, 2026 | Pay Date: Friday, 3/07/2026
+Earnings:
+- Regular Pay: 80 hrs @ $31.25/hr = $2,500.00
+- Gross Pay: $2,500.00
+Deductions:
+- 401(k): -$100.00
+- Health Insurance: -$75.00
+Taxes:
+- Federal Income Tax: -$178.00
+- Social Security: -$90.00
+- Medicare: -$21.00
+- Net Pay: $2,036.00
+
+Current Pay Period: Mar 2–15, 2026 | Pay Date: Friday, 3/21/2026
+Earnings:
+- Regular Pay: 80 hrs @ $31.25/hr = $2,500.00
+- Overtime: 5 hrs @ $46.88/hr = $234.40
+- Gross Pay: $2,734.40
+Deductions:
+- 401(k): -$100.00
+- Health Insurance: -$75.00
+Taxes:
+- Federal Income Tax: -$185.00
+- Social Security: -$93.40
+- Medicare: -$21.85
+- Net Pay: $2,259.15
+
+Direct Deposit (current on file):
+Bank: Chase Bank | Account ending: 4521 | Account type: Checking | Amount: 100% of net pay`
+      },
+      schedule: {
+        name: 'Schedule',
+        data: `AGENT: RdyScheduleAgent — live data retrieved
+Schedule for week of Mar 17–21, 2026:
+- Mon Mar 17: Morning Shift | 9:00 AM – 5:00 PM | Cost Center: CC-100
+- Tue Mar 18: Morning Shift | 9:00 AM – 5:00 PM | Cost Center: CC-100
+- Wed Mar 19: Split Shift | 9:00 AM – 12:00 PM / 3:00 PM – 6:00 PM | Cost Center: CC-100
+- Thu Mar 20: Morning Shift | 9:00 AM – 5:00 PM | Cost Center: CC-100
+- Fri Mar 21: Off
+Total scheduled hours: 35`
+      },
+      timesheet: {
+        name: 'Timesheet',
+        data: `AGENT: RdyTimesheetAgent — live data retrieved
+Pay Period: Mar 2–15, 2026
+Worked entries:
+- Mon Mar 9: 8.00 hrs | CC-100
+- Tue Mar 10: 8.00 hrs | CC-100
+- Wed Mar 11: 7.50 hrs | CC-100
+- Thu Mar 12: 8.00 hrs | CC-100
+- Fri Mar 13: 8.00 hrs | CC-100
+Total worked: 47.50 hrs
+Read-only — cannot modify entries.`
+      },
+      profile: {
+        name: 'Profile',
+        data: `AGENT: RdyMyProfileAgent — live data retrieved
+Account: john.doe | Display Name: John Doe
+Email: john.doe@company.com
+Phone: (555) 234-5678
+Address: 123 Main St, Boston, MA 02101
+Manager: Sarah Johnson
+Base Compensation: $65,000.00 / 2,080 hrs (Annual) | $31.25/hr
+Hire Date: March 15, 2021
+Cost Center: CC-100 — Customer Service`
+      },
+      direct_deposit_setup: {
+        name: 'Direct Deposit Setup',
+        data: `AGENT: RdyEmployeeSetupDirectDeposit — tools available
+Use FormBuilderDirectDepositGeneral to collect direct deposit details from the employee.
+After the user submits, confirm the details then simulate success.`
+      },
+      benefits: {
+        name: 'Benefits',
+        data: `AGENT: RdyBenefitsAgent — live data retrieved
+Enrolled benefits:
+1. Medical — Blue Cross PPO | Employee + Spouse | $147.50 / PayPeriod
+2. Dental — MetLife Plus | Employee Only | $12.00 / PayPeriod
+3. Vision — VSP | Employee Only | $4.50 / PayPeriod
+4. 401(k) — Fidelity | 6% contribution | Employer matches 50% up to 6%
+5. Life Insurance — $50,000 coverage | $0.00 / PayPeriod (covered by employer)`
+      },
+      holiday: {
+        name: 'Holiday',
+        data: `AGENT: RdyHolidayAgent — live data retrieved
+Company holidays for 2026:
+- New Year's Day: January 1, 2026
+- Martin Luther King Jr. Day: January 19, 2026
+- Presidents' Day: February 16, 2026
+- Memorial Day: May 25, 2026
+- Independence Day: July 4, 2026
+- Labor Day: September 7, 2026
+- Thanksgiving: November 26, 2026
+- Christmas Day: December 25, 2026`
+      },
+      leave: {
+        name: 'Leave of Absence',
+        data: `AGENT: RdyLeaveAgent — live data retrieved
+LOA counters for John Doe:
+- FMLA: Eligible | 480 hrs entitled | 120 hrs taken | 360 hrs remaining
+- Personal Leave: Eligible | 80 hrs entitled | 0 hrs taken | 80 hrs remaining
+- Parental Leave: Eligible | 480 hrs entitled | 0 hrs taken | 480 hrs remaining`
+      },
+      wfm_timesheet: {
+        name: 'Timesheet Change Request',
+        data: `AGENT: RdyWFMTimeSheetChangeRequestAgent — tools available
+Employee: John Doe | Pay period: Mar 2–15, 2026
+Recent change requests: None on file for this pay period.`
+      },
+      time_off_category: {
+        name: 'Time Off Calendar',
+        data: `AGENT: RdyTimeOffCategoryAgent — live data retrieved
+Available time off types:
+- Vacation | Duration: DAYS | Requestable: Yes
+- Sick Leave | Duration: HOURS | Requestable: Yes
+- PTO | Duration: HOURS | Requestable: Yes
+- Personal Day | Duration: DAYS | Requestable: Yes`
+      },
+      clock: {
+        name: 'Clock',
+        data: `AGENT: RdyPunchAgent — tools available
+Current status for John Doe (Friday, March 20, 2026):
+- Status: CLOCKED OUT | Last punch: Thu Mar 19 at 5:02 PM
+- Scheduled shift today: 9:00 AM – 5:00 PM | Cost Center: CC-100`
+      },
+      i9: {
+        name: 'I-9 Helper',
+        data: `AGENT: RdyHrFormI9Helper — tools available
+Answer questions about Form I-9 using retrieved instructions.`
+      },
+      course: {
+        name: 'Course Assistant',
+        data: `AGENT: RdyCourseRecommendationAgent — tools available
+Employee: John Doe | Role: Employee
+Skills: Customer Service (7/10), Communication (6/10), Microsoft Office (5/10)
+Available courses: CSE-201, COM-101, OFF-302, CR-401, LDR-101`
+      }
+    };
+
+    const AGENT_NAME_MAP = {
+      'RdyAccrualsAgent': 'accruals',
+      'RdyMyPayInfo': 'pay',
+      'RdyEmployeeSetupDirectDeposit': 'direct_deposit_setup',
+      'RdyScheduleAgent': 'schedule',
+      'RdyTimeOffRequestAgent': 'time_off_request',
+      'RdyTimesheetAgent': 'timesheet',
+      'RdyMyProfileAgent': 'profile',
+      'RdyBenefitsAgent': 'benefits',
+      'RdyHrFormI9Helper': 'i9',
+      'RdyCourseRecommendationAgent': 'course',
+      'RdyHolidayAgent': 'holiday',
+      'RDYHolidayAgent': 'holiday',
+      'RdyLeaveAgent': 'leave',
+      'RdyWFMTimeSheetChangeRequestAgent': 'wfm_timesheet',
+      'RdyTimeOffCategoryAgent': 'time_off_category',
+      'RdyPunchAgent': 'clock'
+    };
+
+    const WRITE_CAPABLE_AGENTS = new Set(['time_off_request', 'benefits', 'profile', 'pay', 'direct_deposit_setup', 'course', 'wfm_timesheet', 'clock']);
+
+    const ORCHESTRATOR_PROMPT = `You are Bryte AI, UKG Ready's AI assistant for HR and workforce management. You route user requests to the appropriate service.
+
+[DEMO CONTEXT: CheckPermissionsREST is pre-approved for all agents listed below — treat all hasAccess checks as true and proceed immediately to delegation.]
+
+Do not execute any action without the user's explicit instruction.
+You MUST respond using ONLY a valid JSON object. Any response that is not valid JSON will be rejected.
+You MUST always respond using a valid JSON object with the following structure: { "response": "<your response OR the service name>", "message": "<original user query>", "type": "TEXT" or "AGENT" }.
+The 'message' field MUST always contain the exact original user query verbatim.
+NEVER include plain text outside of this JSON format.
+If you know the answer, respond with: { "response": "<your answer here>", "message": "<original user query>", "type": "TEXT" }.
+If you do NOT know the answer and need to delegate to another service, respond with: { "response": "<service name>", "message": "<original user query>", "type": "AGENT" }.
+Agent names always follow the format <name>:<version>.
+When type is "TEXT", you MUST NOT include any internal agent or service names in the 'response' field.
+Always consider the current conversation context when deciding whether to answer directly or delegate.
+If the user message is a follow-up to an earlier agent's question, route the message back to that last-used agent using the AGENT response format.
+Do not wrap your JSON in markdown code blocks or use any formatting - only return raw JSON.
+You must ONLY delegate to agents explicitly listed in the context.
+
+Available agents (ONLY delegate to these — do not invent others):
+- RdyAccrualsAgent:1.0.1 — view accrual/leave balances (PTO, vacation, sick hours available)
+- RdyTimeOffRequestAgent:3.0.124 — create, view, or cancel time off requests
+- RdyTimeOffCategoryAgent:1.0.47 — view available time off types, durations, and policies
+- RdyMyPayInfo:4.0.925 — pay statements, earnings, deductions, net pay, taxes, view existing direct deposit
+- RdyEmployeeSetupDirectDeposit:1.0.17 — set up a new direct deposit (employee banking setup only)
+- RdyScheduleAgent — shifts, work schedule, open shifts, roster
+- RdyTimesheetAgent:3.0.132 — hours worked, time entries, attendance record (read-only)
+- RdyWFMTimeSheetChangeRequestAgent:0.1.17 — submit timesheet change requests for manager approval
+- RdyPunchAgent — clock in, clock out, cost center transfer for today's shift
+- RdyMyProfileAgent:1.4.18 — personal info, contact details, compensation, manager, hire date
+- RdyBenefitsAgent:0.0.68 — benefits enrollment, medical/dental/vision/401k coverage
+- RdyLeaveAgent:3.0.24 — Leave of Absence (LOA) information, balances, and request history
+- RDYHolidayAgent:2.2.13 — company holidays and block days
+- RdyCourseRecommendationAgent:2.0.90 — view skills, recommend and assign learning courses
+- RdyHrFormI9Helper:0.0.29 — Form I-9 guidance for employment eligibility verification
+
+ROUTING INTENT:
+- "apply for leave" or "request leave" or "take leave" → RdyTimeOffRequestAgent:3.0.124
+- "LOA" or "leave of absence" → RdyLeaveAgent:3.0.24
+- "clock in" or "punch in" or "start my shift" → RdyPunchAgent
+- "fix my timesheet" or "timesheet error" → RdyWFMTimeSheetChangeRequestAgent:0.1.17
+- Compound requests spanning multiple agents → respond yourself with type: TEXT`;
+
+    const DIRECT_PROMPT = `You are Bryte, UKG Ready's AI assistant.
+The user is already logged in and authenticated. Never ask for their name or ID.
+Never refer to internal "agents" — use "service" if needed.
+SENSITIVE TOPICS: If user mentions job loss, termination, crisis, distress: Acknowledge in one sentence, provide EAP resource.
+SCOPE LIMITS: Never give legal, immigration, medical, or financial advice. Direct to HR.
+FALLBACK: Say what you can't do, then offer what you can. Never dead-end.
+TONE: Plain employee language. Short sentences. Active voice.`;
+
+    const AGENT_BASE_PROMPT = `You are Bryte, a friendly, dependable AI companion helping workers manage HR and workforce tasks.
+The user is already logged in as John Doe. Never ask for their name, employee ID, or identity verification.
+Data from agent tools has already been retrieved and is provided below. Use it directly.
+Use short sentences. Active voice. Be outcome focused. Use contractions and plain language.`;
+
+    async function init() {
+      await loadIncludes();
+      const res = await fetch('/use-cases.json');
+      useCasesData = await res.json();
+      renderSidebar();
+      updateStats();
+    }
+
+    function renderSidebar() {
+      const list = document.getElementById('sidebarList');
+      const search = document.getElementById('searchBox').value.toLowerCase();
+      const scorecardGroups = {};
+
+      useCasesData.meta.scorecards.forEach(sc => {
+        scorecardGroups[sc.id] = { ...sc, cases: [] };
+      });
+
+      useCasesData.useCases.forEach(uc => {
+        if (search && !uc.title.toLowerCase().includes(search) &&
+            !uc.id.toLowerCase().includes(search) &&
+            !uc.userMessage.toLowerCase().includes(search)) return;
+
+        if (activeFilter === 'pass' && verdicts[uc.id] !== 'pass') return;
+        if (activeFilter === 'fail' && verdicts[uc.id] !== 'fail') return;
+        if (activeFilter === 'untested' && verdicts[uc.id]) return;
+
+        if (scorecardGroups[uc.scorecard]) {
+          scorecardGroups[uc.scorecard].cases.push(uc);
+        }
+      });
+
+      let html = '';
+      Object.values(scorecardGroups).forEach(group => {
+        if (group.cases.length === 0) return;
+        html += `<div class="scorecard-group">
+          <div class="scorecard-header" onclick="toggleScorecard(this)">
+            <i class="chevron">&#9660;</i>
+            <span>${group.name}</span>
+            <span class="count">${group.cases.length}</span>
+          </div>
+          <div class="scorecard-items">`;
+
+        group.cases.forEach(uc => {
+          const v = verdicts[uc.id];
+          const statusClass = v || 'untested';
+          const statusIcon = v === 'pass' ? '&#10003;' : v === 'fail' ? '&#10007;' : '&mdash;';
+          const isSelected = selectedUC && selectedUC.id === uc.id;
+          const statusTag = uc.status !== 'active' ?
+            `<span class="uc-status-tag ${uc.status}">${uc.status === 'needs-investigation' ? 'Investigate' : uc.status}</span>` : '';
+
+          html += `<div class="use-case-item${isSelected ? ' selected' : ''}" onclick="selectUseCase('${uc.id}')">
+            <div class="uc-status ${statusClass}">${statusIcon}</div>
+            <div class="uc-info">
+              <div class="uc-title-row">
+                <span class="uc-id">${uc.id}</span>
+                <span class="uc-title">${uc.title}</span>
+                ${statusTag}
+              </div>
+              <div class="uc-preview">"${uc.userMessage.substring(0, 60)}${uc.userMessage.length > 60 ? '...' : ''}"</div>
+            </div>
+          </div>`;
+        });
+
+        html += '</div></div>';
+      });
+
+      list.innerHTML = html;
+    }
+
+    function toggleScorecard(el) {
+      el.classList.toggle('collapsed');
+      el.nextElementSibling.classList.toggle('collapsed');
+    }
+
+    function filterUseCases() { renderSidebar(); }
+
+    function setFilter(filter) {
+      activeFilter = filter;
+      renderSidebar();
+      updateStats();
+    }
+
+    function updateStats() {
+      const total = useCasesData ? useCasesData.useCases.length : 0;
+      const passCount = Object.values(verdicts).filter(v => v === 'pass').length;
+      const failCount = Object.values(verdicts).filter(v => v === 'fail').length;
+      const untestedCount = total - passCount - failCount;
+
+      document.getElementById('sidebarStats').innerHTML = `
+        <div class="stat-pill all${activeFilter === 'all' ? ' active' : ''}" onclick="setFilter('all')">All ${total}</div>
+        <div class="stat-pill pass${activeFilter === 'pass' ? ' active' : ''}" onclick="setFilter('pass')">Pass ${passCount}</div>
+        <div class="stat-pill fail${activeFilter === 'fail' ? ' active' : ''}" onclick="setFilter('fail')">Fail ${failCount}</div>
+        <div class="stat-pill untested${activeFilter === 'untested' ? ' active' : ''}" onclick="setFilter('untested')">Untested ${untestedCount}</div>
+      `;
+    }
+
+    function selectUseCase(id) {
+      const uc = useCasesData.useCases.find(u => u.id === id);
+      if (!uc) return;
+
+      selectedUC = uc;
+      chatHistory = [];
+      document.getElementById('emptyState').style.display = 'none';
+      document.getElementById('testPage').classList.add('active');
+
+      renderTestHeader(uc);
+      renderTestDetails(uc);
+      resetChat();
+      renderSidebar();
+    }
+
+    function renderTestHeader(uc) {
+      const statusClass = uc.status === 'active' ? 'status-active' :
+        uc.status === 'needs-investigation' ? 'status-needs-investigation' : 'status-pending';
+      const statusLabel = uc.status === 'needs-investigation' ? 'Needs Investigation' :
+        uc.status.charAt(0).toUpperCase() + uc.status.slice(1);
+
+      let tagsHtml = `<span class="meta-tag type">${uc.type}</span>
+        <span class="meta-tag ${statusClass}">${statusLabel}</span>`;
+      (uc.rules || []).forEach(r => {
+        tagsHtml += `<span class="meta-tag rule">${r}</span>`;
+      });
+
+      document.getElementById('testHeader').innerHTML = `
+        <div class="test-header-top">
+          <span class="test-id">${uc.id}</span>
+          <span class="test-title">${uc.title}</span>
+          <span class="test-scorecard">${uc.scorecardName}</span>
+        </div>
+        <div class="test-meta">${tagsHtml}</div>
+      `;
+    }
+
+    function renderTestDetails(uc) {
+      let html = '';
+
+      html += `<div class="detail-section">
+        <h3>User Prompt</h3>
+        <div class="prompt-text" onclick="sendPrompt(this.dataset.msg)" data-msg="${escapeAttr(uc.userMessage)}">${escapeHtml(uc.userMessage)}</div>`;
+
+      if (uc.userMessageAlternatives) {
+        html += '<div class="alt-prompts"><h3 style="margin-top:8px">Alternative Prompts</h3>';
+        uc.userMessageAlternatives.forEach(alt => {
+          html += `<div class="alt-prompt" onclick="sendPrompt(this.dataset.msg)" data-msg="${escapeAttr(alt)}">${escapeHtml(alt)}</div>`;
+        });
+        html += '</div>';
+      }
+      if (uc.followUpMessage) {
+        html += `<div class="alt-prompts" style="margin-top:8px"><h3>Follow-up Message</h3>
+          <div class="alt-prompt" onclick="sendPrompt(this.dataset.msg)" data-msg="${escapeAttr(uc.followUpMessage)}">${escapeHtml(uc.followUpMessage)}</div>
+        </div>`;
+      }
+      html += '</div>';
+
+      html += `<div class="detail-section">
+        <h3>Expected Behavior</h3>
+        <p>${escapeHtml(uc.expectedBehavior)}</p>
+      </div>`;
+
+      if (uc.criteria && uc.criteria.length) {
+        html += `<div class="detail-section"><h3>Evaluation Criteria</h3><ul>`;
+        uc.criteria.forEach(c => { html += `<li>${escapeHtml(c)}</li>`; });
+        html += '</ul></div>';
+      }
+
+      if (uc.tags && uc.tags.length) {
+        html += `<div class="detail-section"><h3>Tags</h3><div style="display:flex;flex-wrap:wrap;gap:4px">`;
+        uc.tags.forEach(t => {
+          html += `<span style="font-size:10.5px;padding:2px 7px;border-radius:4px;background:rgba(0,0,0,0.04);color:rgba(0,0,0,0.5)">${escapeHtml(t)}</span>`;
+        });
+        html += '</div></div>';
+      }
+
+      if (uc.notes) {
+        html += `<div class="detail-section"><h3>Notes</h3><div class="notes-box">${escapeHtml(uc.notes)}</div></div>`;
+      }
+
+      document.getElementById('testDetails').innerHTML = html;
+    }
+
+    function sendPrompt(msg) {
+      document.getElementById('evalInput').value = msg;
+      sendEvalMessage();
+    }
+
+    function resetChat() {
+      chatHistory = [];
+      const container = document.getElementById('evalMessages');
+      container.innerHTML = '';
+      appendMsg('bryte', 'Hi! I\'m Bryte. How can I help you today?');
+      updateVerdictButtons();
+    }
+
+    function resetCurrentSession() {
+      if (selectedUC) {
+        resetChat();
+      }
+    }
+
+    function saveVerdicts() {
+      localStorage.setItem('bryteEvalVerdicts', JSON.stringify(verdicts));
+    }
+
+    function setVerdict(v) {
+      if (!selectedUC) return;
+      if (verdicts[selectedUC.id] === v) {
+        delete verdicts[selectedUC.id];
+      } else {
+        verdicts[selectedUC.id] = v;
+      }
+      saveVerdicts();
+      updateVerdictButtons();
+      updateStats();
+      renderSidebar();
+    }
+
+    function updateVerdictButtons() {
+      const passBtn = document.querySelector('.verdict-btn.pass-btn');
+      const failBtn = document.querySelector('.verdict-btn.fail-btn');
+      if (!passBtn || !failBtn || !selectedUC) return;
+
+      passBtn.classList.toggle('active', verdicts[selectedUC.id] === 'pass');
+      failBtn.classList.toggle('active', verdicts[selectedUC.id] === 'fail');
+    }
+
+    function getCurrentDateContext() {
+      const now = new Date();
+      const opts = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+      const dateStr = now.toLocaleDateString('en-US', opts);
+      const timeStr = now.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', timeZoneName: 'short' });
+      return `Today is ${dateStr} at ${timeStr}.`;
+    }
+
+    async function callGemini(messages, systemPrompt, jsonMode = false, _retryAttempt = 0) {
+      const contents = messages.map(m => ({
+        role: m.role === 'assistant' ? 'model' : 'user',
+        parts: [{ text: m.content }]
+      }));
+
+      const body = {
+        system_instruction: { parts: [{ text: getCurrentDateContext() + '\n\n' + systemPrompt }] },
+        contents,
+        safetySettings: [
+          { category: 'HARM_CATEGORY_HARASSMENT', threshold: 'BLOCK_NONE' },
+          { category: 'HARM_CATEGORY_HATE_SPEECH', threshold: 'BLOCK_NONE' },
+          { category: 'HARM_CATEGORY_SEXUALLY_EXPLICIT', threshold: 'BLOCK_NONE' },
+          { category: 'HARM_CATEGORY_DANGEROUS_CONTENT', threshold: 'BLOCK_NONE' }
+        ],
+        toolConfig: { function_calling_config: { mode: 'NONE' } },
+        generationConfig: {
+          temperature: jsonMode ? 0 : 0.7,
+          maxOutputTokens: jsonMode ? 800 : 8192,
+          ...(jsonMode && { responseMimeType: 'application/json' })
+        }
+      };
+
+      const res = await fetch('/api/gemini', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ body, model: 'gemini-2.5-flash' })
+      });
+
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.error?.message || 'API error');
+      }
+
+      const data = await res.json();
+      const candidate = data.candidates?.[0];
+      const parts = candidate?.content?.parts || [];
+      const text = parts.map(p => p.text).filter(Boolean).join('');
+      if (!text) {
+        const reason = candidate?.finishReason || 'unknown';
+        if (reason === 'UNEXPECTED_TOOL_CALL' && _retryAttempt < 1) {
+          return await callGemini(messages, systemPrompt, jsonMode, _retryAttempt + 1);
+        }
+        throw new Error(`Response blocked or empty (reason: ${reason})`);
+      }
+      return text;
+    }
+
+    async function sendEvalMessage() {
+      const input = document.getElementById('evalInput');
+      const text = input.value.trim();
+      if (!text) return;
+
+      input.value = '';
+      appendMsg('user', text);
+      chatHistory.push({ role: 'user', content: text });
+
+      const typingId = showTyping();
+      setInputDisabled(true);
+
+      try {
+        const orchestratorPrompt = ORCHESTRATOR_PROMPT + '\n\n' + includes.orchestratorRules;
+
+        let agentKey = null;
+        let orchestratorTextReply = null;
+
+        try {
+          const routingRaw = await callGemini(chatHistory, orchestratorPrompt, true);
+          const routing = JSON.parse(routingRaw.replace(/```json|```/g, '').trim());
+          if (routing.type === 'AGENT') {
+            const baseName = (routing.response || '').split(':')[0];
+            agentKey = AGENT_NAME_MAP[baseName] || null;
+            if (!agentKey) {
+              console.warn('Routing returned unknown agent:', routing.response);
+              showRoutingTag('Routing: unknown agent "' + (routing.response || '') + '"');
+            }
+          } else if (routing.type === 'TEXT') {
+            orchestratorTextReply = routing.response;
+          }
+        } catch(e) {
+          console.warn('Routing parse error:', e.message);
+          showRoutingTag('Routing parse error — falling back to direct');
+        }
+
+        let reply;
+        if (agentKey && MOCK_AGENTS[agentKey]) {
+          const mock = MOCK_AGENTS[agentKey];
+          showRoutingTag(`Orchestrator → ${mock.name} Agent`);
+          const specAddOn = '\n\n' + includes.agentBehavior +
+            (WRITE_CAPABLE_AGENTS.has(agentKey) ? '\n\n' + includes.writeActions : '');
+          const agentPrompt = AGENT_BASE_PROMPT +
+            `\n\n--- AGENT DATA ---\n${mock.data}` + specAddOn;
+          reply = await callGemini(chatHistory, agentPrompt);
+        } else if (orchestratorTextReply) {
+          showRoutingTag('Orchestrator → direct');
+          reply = orchestratorTextReply;
+        } else {
+          showRoutingTag('Orchestrator → direct');
+          const directPrompt = DIRECT_PROMPT + '\n\n' + includes.agentBehavior;
+          reply = await callGemini(chatHistory, directPrompt);
+        }
+
+        removeTyping(typingId);
+        appendMsg('bryte', reply);
+        chatHistory.push({ role: 'assistant', content: reply });
+      } catch(err) {
+        removeTyping(typingId);
+        appendMsg('bryte', 'API error: ' + err.message);
+      }
+
+      setInputDisabled(false);
+      document.getElementById('evalInput').focus();
+    }
+
+    function showRoutingTag(label) {
+      const container = document.getElementById('evalMessages');
+      const existing = container.querySelector('.routing-tag-eval');
+      if (existing) existing.remove();
+      const tag = document.createElement('div');
+      tag.className = 'routing-tag-eval';
+      tag.textContent = label;
+      container.appendChild(tag);
+      container.scrollTop = container.scrollHeight;
+    }
+
+    let typingCounter = 0;
+    function showTyping() {
+      const id = 'typing-' + (++typingCounter);
+      const container = document.getElementById('evalMessages');
+      const msgDiv = document.createElement('div');
+      msgDiv.className = 'msg bryte';
+      msgDiv.id = id;
+      const av = document.createElement('div');
+      av.style.cssText = 'width:26px;height:26px;flex-shrink:0';
+      msgDiv.appendChild(av);
+      const bubble = document.createElement('div');
+      bubble.className = 'bubble typing-bubble';
+      bubble.innerHTML = '<div class="dot"></div><div class="dot"></div><div class="dot"></div>';
+      msgDiv.appendChild(bubble);
+      container.appendChild(msgDiv);
+      container.scrollTop = container.scrollHeight;
+      return id;
+    }
+
+    function removeTyping(id) {
+      const el = document.getElementById(id);
+      if (el) el.remove();
+    }
+
+    function setInputDisabled(disabled) {
+      document.getElementById('evalInput').disabled = disabled;
+      document.getElementById('evalSend').disabled = disabled;
+    }
+
+    function renderMarkdown(text) {
+      const lines = text.split('\n');
+      let html = '';
+      let tableRows = [];
+      let inFormBlock = false;
+      let formLines = [];
+
+      function flushTable() {
+        if (!tableRows.length) return;
+        const headers = tableRows[0].split('|').map(c => c.trim()).filter(c => c);
+        const body = tableRows.slice(2);
+        let t = '<table style="border-collapse:collapse;font-size:13px;margin:6px 0;width:100%"><thead><tr>';
+        headers.forEach(h => {
+          t += `<th style="border:1px solid rgba(0,0,0,0.12);padding:5px 8px;background:rgba(48,37,141,0.06);text-align:left;font-weight:600">${h}</th>`;
+        });
+        t += '</tr></thead><tbody>';
+        body.forEach(row => {
+          const cells = row.split('|').map(c => c.trim()).filter(c => c);
+          if (!cells.length) return;
+          t += '<tr>';
+          cells.forEach(cell => {
+            t += `<td style="border:1px solid rgba(0,0,0,0.1);padding:5px 8px">${inlineFormat(cell)}</td>`;
+          });
+          t += '</tr>';
+        });
+        t += '</tbody></table>';
+        html += t;
+        tableRows = [];
+      }
+
+      function inlineFormat(s) {
+        return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+          .replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>')
+          .replace(/\*(.+?)\*/g,'<em>$1</em>');
+      }
+
+      let bulletNum = 0;
+      lines.forEach(line => {
+        if (line.trim() === '```form') { inFormBlock = true; formLines = []; return; }
+        if (inFormBlock) {
+          if (line.trim() === '```') {
+            inFormBlock = false;
+            try {
+              const formDef = JSON.parse(formLines.join('\n'));
+              html += renderBryteForm(formDef);
+            } catch(e) { html += '<div style="color:red;font-size:12px">Form render error</div>'; }
+            formLines = [];
+          } else { formLines.push(line); }
+          return;
+        }
+        if (line.trim().startsWith('|')) { tableRows.push(line); return; }
+        if (tableRows.length) flushTable();
+        const safe = inlineFormat(line);
+        if (/^\*\*[^*]+\*\*\s*$/.test(line.trim())) {
+          bulletNum = 0;
+          const subtitleText = inlineFormat(line.trim().replace(/^\*\*|\*\*$/g, ''));
+          html += `<div style="margin:12px 0 3px 0;font-size:13px;font-weight:800;color:rgba(0,0,0,0.88)">${subtitleText}</div>`;
+        } else if (/^\d+\.\s/.test(line.trim())) {
+          bulletNum = 0;
+          html += `<div style="margin:6px 0;padding-left:4px">${safe}</div>`;
+        } else if (/^[-•]\s/.test(line.trim())) {
+          bulletNum++;
+          html += `<div style="margin:6px 0;padding-left:4px">${bulletNum}. ${safe.replace(/^[-•]\s/,'')}</div>`;
+        } else if (line.trim() === '') {
+          bulletNum = 0;
+          html += '<div style="height:8px"></div>';
+        } else {
+          bulletNum = 0;
+          html += `<div style="margin:3px 0">${safe}</div>`;
+        }
+      });
+      if (tableRows.length) flushTable();
+      return html;
+    }
+
+    function renderBryteForm(formDef) {
+      const formId = formDef.formId || ('bryte-form-' + Date.now());
+      let html = `<form class="bryte-form" id="${formId}">`;
+      if (formDef.title) html += `<div class="bryte-form-title">${escapeHtml(formDef.title)}</div>`;
+      (formDef.fields || []).forEach(field => {
+        html += `<div class="bryte-form-field">`;
+        const opt = field.required === false ? ' <span style="font-weight:400;color:rgba(0,0,0,0.38)">(optional)</span>' : '';
+        html += `<label for="${formId}-${field.id}">${escapeHtml(field.label)}${opt}</label>`;
+        if (field.type === 'select') {
+          html += `<select id="${formId}-${field.id}" name="${field.id}">`;
+          (field.options || []).forEach(o => {
+            const sel = field.default === o ? ' selected' : '';
+            html += `<option value="${escapeHtml(o)}"${sel}>${escapeHtml(o)}</option>`;
+          });
+          html += '</select>';
+        } else {
+          const val = field.default ? ` value="${escapeAttr(field.default)}"` : '';
+          html += `<input type="text" id="${formId}-${field.id}" name="${field.id}"${val} autocomplete="off"/>`;
+        }
+        html += '</div>';
+      });
+      const label = escapeHtml(formDef.submitLabel || 'Submit');
+      html += `<button type="button" class="bryte-form-submit" onclick="submitBryteForm('${formId}')">${label}</button></form>`;
+      return html;
+    }
+
+    function submitBryteForm(formId) {
+      const form = document.getElementById(formId);
+      if (!form) return;
+      const parts = [];
+      form.querySelectorAll('input, select').forEach(f => {
+        if (!f.name || !f.value.trim()) return;
+        const lbl = form.querySelector(`label[for="${formId}-${f.name}"]`);
+        const labelText = lbl ? lbl.textContent.replace('(optional)', '').trim() : f.name;
+        parts.push(`${labelText}: ${f.value.trim()}`);
+      });
+      if (!parts.length) return;
+      form.querySelectorAll('input, select, button').forEach(el => el.disabled = true);
+      const btn = form.querySelector('.bryte-form-submit');
+      if (btn) btn.textContent = 'Submitted';
+      document.getElementById('evalInput').value = parts.join(' | ');
+      sendEvalMessage();
+    }
+
+    function appendMsg(role, text) {
+      const container = document.getElementById('evalMessages');
+      const msgDiv = document.createElement('div');
+      msgDiv.className = `msg ${role}`;
+
+      if (role === 'bryte') {
+        const avatar = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+        avatar.setAttribute('width', '26'); avatar.setAttribute('height', '26');
+        avatar.setAttribute('viewBox', '0 0 32 32'); avatar.setAttribute('fill', 'none');
+        const gradId = 'msg_grad_' + Date.now();
+        avatar.innerHTML = `
+          <path fill-rule="evenodd" clip-rule="evenodd" d="M27.6928 6.86067C27.4119 7.75951 27.1785 9.53921 27.8269 11.1042L27.8269 11.1041C28.4622 12.6376 29.8419 13.7183 30.6821 14.1724C30.7254 14.1868 30.7685 14.2029 30.8114 14.2207C31.5741 14.5365 32.0257 15.2861 31.9989 16.0651C31.9743 16.7964 31.5315 17.4812 30.8113 17.7795C30.7685 17.7972 30.7253 17.8133 30.682 17.8278C29.8418 18.2818 28.4621 19.3625 27.8268 20.896C27.1785 22.4609 27.4118 24.2405 27.6927 25.1393C27.9099 25.6098 27.9375 26.1661 27.7235 26.6826C27.6434 26.876 27.5354 27.0493 27.4061 27.2C27.2155 27.4225 26.9709 27.6047 26.6816 27.7246C26.164 27.9389 25.6064 27.9108 25.1352 27.6924C24.2353 27.412 22.4576 27.1799 20.8941 27.8273C19.3669 28.4599 18.2886 29.8305 17.8312 30.6715C17.6628 31.1873 17.2784 31.6292 16.7377 31.8531C16.4902 31.9556 16.2336 32.0026 15.9816 32C15.7415 31.9979 15.4977 31.9506 15.2623 31.853C14.7217 31.6292 14.3373 31.1874 14.1689 30.6717C13.7115 29.8307 12.6332 28.4599 11.1059 27.8274C9.54256 27.1799 7.76499 27.412 6.86503 27.6923C6.3938 27.9108 5.83611 27.939 5.3184 27.7246C5.02629 27.6036 4.77981 27.4191 4.58837 27.1936C4.46152 27.0444 4.35545 26.8732 4.27649 26.6826C4.0625 26.1661 4.09015 25.6098 4.3074 25.1392C4.58821 24.2403 4.82146 22.4608 4.1732 20.896C3.53792 19.3626 2.1582 18.2819 1.31802 17.8278C1.27468 17.8134 1.23155 17.7973 1.18869 17.7795C0.468362 17.4812 0.0254892 16.7961 0.00111517 16.0646C-0.0255076 15.2857 0.426109 14.5365 1.18864 14.2207C1.23149 14.2029 1.27463 14.1868 1.31796 14.1724C2.15814 13.7183 3.53786 12.6376 4.17314 11.1041C4.82141 9.53938 4.58816 7.75988 4.30734 6.86095C4.09009 6.39043 4.06244 5.8341 4.27644 5.31756C4.35591 5.12572 4.46284 4.95356 4.59078 4.80375C4.78187 4.57957 5.02749 4.39604 5.31834 4.27559C5.83606 4.06118 6.39374 4.08939 6.86497 4.30787C7.76493 4.58823 9.54251 4.82026 11.1058 4.17286C12.6334 3.54018 13.7118 2.16918 14.169 1.32821C14.3375 0.812581 14.7218 0.370903 15.2623 0.147044C15.5152 0.0423256 15.7776 -0.00451819 16.0347 0.000150523C16.2749 0.00454791 16.5116 0.0538498 16.7377 0.14703C17.2784 0.370833 17.6628 0.812615 17.8312 1.32835C18.2886 2.16932 19.3669 3.54018 20.8941 4.17282C22.4576 4.82026 24.2352 4.58823 25.1352 4.30787C25.6064 4.08939 26.164 4.06118 26.6816 4.27559C26.9709 4.39604 27.2155 4.57957 27.4061 4.80375C27.5354 4.95356 27.6434 5.12572 27.7235 5.31756C27.9375 5.8341 27.9099 6.39043 27.6928 6.86067Z" fill="url(#${gradId})"/>
+          <path fill-rule="evenodd" clip-rule="evenodd" d="M10.9707 16.5885C11.5954 16.1368 12.468 16.2771 12.9196 16.9018C13.6019 17.8455 14.7237 18.4641 15.9992 18.4641C17.2747 18.4641 18.3965 17.8455 19.0787 16.9018C19.5304 16.2771 20.403 16.1368 21.0277 16.5885C21.6524 17.0402 21.7927 17.9127 21.341 18.5374C20.1501 20.1846 18.1981 21.2557 15.9992 21.2557C13.8003 21.2557 11.8482 20.1846 10.6573 18.5374C10.2057 17.9127 10.346 17.0402 10.9707 16.5885Z" fill="#743DB0"/>
+          <defs><linearGradient id="${gradId}" x1="9.92" y1="1.12" x2="21.8" y2="29.998" gradientUnits="userSpaceOnUse">
+            <stop stop-color="#6DAAF2"/><stop offset="0.75" stop-color="#5F249F"/>
+          </linearGradient></defs>`;
+        avatar.className = 'bryte-avatar';
+        msgDiv.appendChild(avatar);
+      } else {
+        const av = document.createElement('div');
+        av.className = 'user-avatar';
+        av.textContent = 'ME';
+        msgDiv.appendChild(av);
+      }
+
+      const bubble = document.createElement('div');
+      bubble.className = 'bubble';
+      if (role === 'bryte') {
+        bubble.innerHTML = renderMarkdown(text);
+      } else {
+        bubble.textContent = text;
+      }
+      msgDiv.appendChild(bubble);
+      container.appendChild(msgDiv);
+      container.scrollTop = container.scrollHeight;
+    }
+
+    function escapeHtml(s) {
+      return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    }
+
+    function escapeAttr(s) {
+      return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+    }
+
+    init();
+  </script>
+</body>
+</html>
