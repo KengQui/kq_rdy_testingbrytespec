@@ -1,0 +1,364 @@
+{
+  "meta": {
+    "title": "Bryte AI Eval Use Cases",
+    "version": "2.0.0",
+    "totalCases": 15,
+    "scorecards": [
+      {
+        "id": "accruals",
+        "name": "RdyAccruals",
+        "description": "Balance + accrual logic",
+        "count": 5
+      },
+      {
+        "id": "direct_deposit",
+        "name": "RdyEmployeeSetupDirectDeposit",
+        "description": "Setup + validation",
+        "count": 5
+      },
+      {
+        "id": "payroll",
+        "name": "RdyMyPayInfo (Payroll)",
+        "description": "Pay transparency + breakdowns",
+        "count": 5
+      }
+    ]
+  },
+  "useCases": [
+    {
+      "id": "ACC-01",
+      "scorecard": "accruals",
+      "scorecardName": "RdyAccruals",
+      "title": "PTO Accrual Balance",
+      "type": "single-turn",
+      "status": "active",
+      "userMessage": "How much PTO have I accrued?",
+      "expectedBehavior": "Return the employee's current PTO accrual balance directly. Use the accrual data available. Don't ask who they are.",
+      "criteria": [
+        "Addresses the question directly with a number",
+        "Uses available accrual data",
+        "Response is concise (1-3 sentences)",
+        "Does not ask for unnecessary identifying info"
+      ],
+      "rules": [],
+      "tags": [
+        "employee",
+        "accruals"
+      ],
+      "notes": null
+    },
+    {
+      "id": "ACC-02",
+      "scorecard": "accruals",
+      "scorecardName": "RdyAccruals",
+      "title": "Vacation Accrual Schedule",
+      "type": "single-turn",
+      "status": "active",
+      "userMessage": "When do I earn more vacation time?",
+      "expectedBehavior": "Explain the accrual schedule — how often vacation accrues (per pay period, monthly, etc.) and when the next accrual happens. Use available data.",
+      "criteria": [
+        "Explains accrual frequency clearly",
+        "References actual schedule or pay period",
+        "Response is concise and actionable",
+        "Does not over-explain policy"
+      ],
+      "rules": [],
+      "tags": [
+        "employee",
+        "accruals"
+      ],
+      "notes": null
+    },
+    {
+      "id": "ACC-03",
+      "scorecard": "accruals",
+      "scorecardName": "RdyAccruals",
+      "title": "PTO Balance Decrease",
+      "type": "single-turn",
+      "status": "active",
+      "userMessage": "Why did my PTO balance decrease?",
+      "expectedBehavior": "Explain possible reasons for a decrease — approved time off taken, adjustment, policy reset, etc. Reference available data if it shows recent usage.",
+      "criteria": [
+        "Provides a clear explanation for balance change",
+        "References data if available",
+        "Does not speculate without basis",
+        "Suggests checking recent requests if unsure"
+      ],
+      "rules": [],
+      "tags": [
+        "employee",
+        "accruals"
+      ],
+      "notes": null
+    },
+    {
+      "id": "ACC-04",
+      "scorecard": "accruals",
+      "scorecardName": "RdyAccruals",
+      "title": "Sick Leave Balance",
+      "type": "single-turn",
+      "status": "active",
+      "userMessage": "What's my sick leave balance?",
+      "expectedBehavior": "Return the employee's sick leave balance directly. If multiple sick leave types exist, list them. Don't conflate with PTO.",
+      "criteria": [
+        "Returns sick leave balance specifically",
+        "Distinguishes from PTO if applicable",
+        "Response is concise",
+        "Uses available data"
+      ],
+      "rules": [],
+      "tags": [
+        "employee",
+        "accruals"
+      ],
+      "notes": null
+    },
+    {
+      "id": "ACC-05",
+      "scorecard": "accruals",
+      "scorecardName": "RdyAccruals",
+      "title": "Unused Days Rollover",
+      "type": "single-turn",
+      "status": "active",
+      "userMessage": "Do unused days roll over?",
+      "expectedBehavior": "Answer whether unused PTO/vacation rolls over to the next year. Mention any caps or expiration if applicable. Reference company policy.",
+      "criteria": [
+        "Directly answers yes or no",
+        "Mentions any rollover limits or caps",
+        "References policy if available",
+        "Response is concise"
+      ],
+      "rules": [],
+      "tags": [
+        "employee",
+        "accruals",
+        "policy"
+      ],
+      "notes": null
+    },
+    {
+      "id": "DD-01",
+      "scorecard": "direct_deposit",
+      "scorecardName": "RdyEmployeeSetupDirectDeposit",
+      "title": "Set Up Direct Deposit",
+      "type": "multi-turn",
+      "status": "active",
+      "userMessage": "Set up direct deposit",
+      "expectedBehavior": "Begin collecting direct deposit info — bank name, routing number, account number, account type. Don't front-load all fields at once. Guide through step by step.",
+      "criteria": [
+        "Initiates the setup flow",
+        "Asks for banking details in logical order",
+        "Does not dump all fields at once",
+        "Confirms before submitting"
+      ],
+      "rules": [],
+      "tags": [
+        "employee",
+        "direct-deposit",
+        "multi-turn"
+      ],
+      "notes": null
+    },
+    {
+      "id": "DD-02",
+      "scorecard": "direct_deposit",
+      "scorecardName": "RdyEmployeeSetupDirectDeposit",
+      "title": "Update Bank Account",
+      "type": "multi-turn",
+      "status": "active",
+      "userMessage": "Update my bank account details",
+      "expectedBehavior": "Acknowledge the update request. Ask which details need changing. If existing account is on file, reference it. Guide through the update process.",
+      "criteria": [
+        "Acknowledges the request clearly",
+        "Asks what specifically needs updating",
+        "References existing info if available",
+        "Confirms changes before saving"
+      ],
+      "rules": [],
+      "tags": [
+        "employee",
+        "direct-deposit",
+        "multi-turn"
+      ],
+      "notes": null
+    },
+    {
+      "id": "DD-03",
+      "scorecard": "direct_deposit",
+      "scorecardName": "RdyEmployeeSetupDirectDeposit",
+      "title": "Changes Take Effect",
+      "type": "single-turn",
+      "status": "active",
+      "userMessage": "When will my changes take effect?",
+      "expectedBehavior": "Explain when direct deposit changes typically take effect — next pay cycle, processing time, etc. Be specific if data is available.",
+      "criteria": [
+        "Provides a specific timeframe",
+        "References pay cycle if applicable",
+        "Response is concise and clear",
+        "Does not give vague non-answer"
+      ],
+      "rules": [],
+      "tags": [
+        "employee",
+        "direct-deposit"
+      ],
+      "notes": null
+    },
+    {
+      "id": "DD-04",
+      "scorecard": "direct_deposit",
+      "scorecardName": "RdyEmployeeSetupDirectDeposit",
+      "title": "Paycheck Not Going to New Account",
+      "type": "single-turn",
+      "status": "active",
+      "userMessage": "Why didn't my paycheck go to my new account?",
+      "expectedBehavior": "Explain possible reasons — timing (change submitted after cutoff), processing delay, verification pending. Check available data for status. Suggest next steps.",
+      "criteria": [
+        "Identifies likely cause",
+        "References timing or processing if applicable",
+        "Does not blame the employee",
+        "Offers actionable next steps"
+      ],
+      "rules": [],
+      "tags": [
+        "employee",
+        "direct-deposit",
+        "troubleshooting"
+      ],
+      "notes": null
+    },
+    {
+      "id": "DD-05",
+      "scorecard": "direct_deposit",
+      "scorecardName": "RdyEmployeeSetupDirectDeposit",
+      "title": "Split Paycheck Across Accounts",
+      "type": "single-turn",
+      "status": "active",
+      "userMessage": "Can I split my paycheck across accounts?",
+      "expectedBehavior": "Answer whether splitting is supported. If yes, explain how (percentage or fixed amount split). If no, say so clearly. Offer to help set it up if available.",
+      "criteria": [
+        "Directly answers yes or no",
+        "Explains how splitting works if available",
+        "Offers to help if supported",
+        "Response is concise"
+      ],
+      "rules": [],
+      "tags": [
+        "employee",
+        "direct-deposit"
+      ],
+      "notes": null
+    },
+    {
+      "id": "PAY-01",
+      "scorecard": "payroll",
+      "scorecardName": "RdyMyPayInfo (Payroll)",
+      "title": "Latest Payslip",
+      "type": "single-turn",
+      "status": "active",
+      "userMessage": "Show my latest payslip",
+      "expectedBehavior": "Display or summarize the most recent payslip data — gross pay, net pay, key deductions. Use available payroll data.",
+      "criteria": [
+        "Shows most recent pay period data",
+        "Includes gross and net pay",
+        "Lists key deductions",
+        "Uses available payroll data"
+      ],
+      "rules": [],
+      "tags": [
+        "employee",
+        "payroll"
+      ],
+      "notes": null
+    },
+    {
+      "id": "PAY-02",
+      "scorecard": "payroll",
+      "scorecardName": "RdyMyPayInfo (Payroll)",
+      "title": "Paycheck Lower This Period",
+      "type": "single-turn",
+      "status": "active",
+      "userMessage": "Why is my paycheck lower this period?",
+      "expectedBehavior": "Compare current and previous pay periods if data is available. Identify differences — new deductions, fewer hours, tax changes, etc. Be specific, not generic.",
+      "criteria": [
+        "Attempts to identify specific reason",
+        "References pay data if available",
+        "Does not give generic boilerplate answer",
+        "Suggests next steps if cause is unclear"
+      ],
+      "rules": [],
+      "tags": [
+        "employee",
+        "payroll"
+      ],
+      "notes": null
+    },
+    {
+      "id": "PAY-03",
+      "scorecard": "payroll",
+      "scorecardName": "RdyMyPayInfo (Payroll)",
+      "title": "Salary Deductions",
+      "type": "single-turn",
+      "status": "active",
+      "userMessage": "What deductions are taken from my salary?",
+      "expectedBehavior": "List the deductions from the employee's pay — taxes, benefits, retirement, etc. Use available payroll data to give specifics, not just categories.",
+      "criteria": [
+        "Lists actual deductions with amounts if available",
+        "Organized clearly (bullets or structured)",
+        "Uses available payroll data",
+        "Does not just list generic deduction categories"
+      ],
+      "rules": [],
+      "tags": [
+        "employee",
+        "payroll"
+      ],
+      "notes": null
+    },
+    {
+      "id": "PAY-04",
+      "scorecard": "payroll",
+      "scorecardName": "RdyMyPayInfo (Payroll)",
+      "title": "Next Payday",
+      "type": "single-turn",
+      "status": "active",
+      "userMessage": "When is the next payday?",
+      "expectedBehavior": "Provide the specific next pay date. If pay schedule is known, reference it. Don't say 'check with payroll' if the answer is available.",
+      "criteria": [
+        "Provides a specific date or timeframe",
+        "References pay schedule if available",
+        "Response is concise",
+        "Does not deflect if answer is available"
+      ],
+      "rules": [],
+      "tags": [
+        "employee",
+        "payroll"
+      ],
+      "notes": null
+    },
+    {
+      "id": "PAY-05",
+      "scorecard": "payroll",
+      "scorecardName": "RdyMyPayInfo (Payroll)",
+      "title": "Overtime Calculation",
+      "type": "single-turn",
+      "status": "active",
+      "userMessage": "How is overtime calculated?",
+      "expectedBehavior": "Explain how overtime is calculated — threshold (e.g. after 40 hours/week), rate (e.g. 1.5x), and any relevant policy. Keep it clear and practical.",
+      "criteria": [
+        "Explains overtime threshold",
+        "Mentions overtime rate",
+        "References company policy if available",
+        "Response is clear and not overly long"
+      ],
+      "rules": [],
+      "tags": [
+        "employee",
+        "payroll",
+        "policy"
+      ],
+      "notes": null
+    }
+  ]
+}
